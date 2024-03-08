@@ -307,7 +307,7 @@ mod tests {
         };
 
         let pattern = Template::create_pattern(&ph);
-        assert_eq!(pattern, format!(r"{{{{\s*{}.*?}}}}", ph.name()))
+        assert_eq!(pattern, format!(r"\{{\{{\s*{}.*?\}}\}}", ph.name()))
     }
 
     #[test]
@@ -317,7 +317,7 @@ mod tests {
         };
 
         let pattern = Template::create_pattern(&ph);
-        assert_eq!(pattern, format!(r"{{{{\s*{}.*?}}}}", ph.name()))
+        assert_eq!(pattern, format!(r"\{{\{{\s*{}.*?\}}\}}", ph.name()))
     }
 
     #[test]
