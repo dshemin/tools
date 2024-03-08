@@ -1,0 +1,24 @@
+# ИНН самозанятого.
+inn = ""
+
+# Информация о аутентификации для вызова АПИ.
+# Можно получить на https://lknpd.nalog.ru/settings/public-access/
+[auth]
+token = ""
+
+# Пример статичного шаблона для выписывания чека для физ. лица.
+[templates.static_for_person]
+title = "Example of static template with person counterparty"
+price = "1500"
+date = "{{ date:now() }}"
+counterparty = "Person"
+
+# Пример статичного шаблона для выписывания чека для юр. лица.
+[templates.static_for_organization]
+title = "Example of static template with organization counterparty"
+price = "1500"
+date = "{{ date:now() }}"
+
+[templates.static_for_organization.counterparty.Organization]
+name = "example"
+inn = "1234567890"

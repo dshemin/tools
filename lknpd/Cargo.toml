@@ -1,0 +1,23 @@
+[package]
+name = "lknpd"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.79"
+chrono = { version = "0.4.34", features = ["serde", "alloc", "clock", "iana-time-zone", "now", "std"], default-features = false }
+clap = { version = "4.5.0", features = ["derive"] }
+cli-clipboard = "0.4.0"
+confy = "0.6.0"
+derive_more = "0.99.17"
+enum-iterator = "2.0.0"
+env_logger = "0.11.2"
+inquire = { version = "0.7.0", features = ["chrono", "date"] }
+log = "0.4.20"
+peg = "0.8.2"
+regex = "1.10.3"
+reqwest = { version = "0.11.24", features = ["blocking", "json"] }
+serde = { version = "1.0.196", features = ["serde_derive"] }
+thiserror = "1.0.57"
