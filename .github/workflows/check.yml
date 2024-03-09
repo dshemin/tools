@@ -13,17 +13,21 @@ jobs:
   check:
     strategy:
       matrix:
-        tools: [lknpd]
+        tool: [lknpd]
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.tool }}
 
     steps:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
+      with:
+        key: ${{ matrix.tool }}
 
     - name: Lint
       run: cargo clippy
-      working-directory: ${{ matrix.tools }}
 
     - name: Tests
       run: cargo test --verbose
-      working-directory: ${{ matrix.tools }}
