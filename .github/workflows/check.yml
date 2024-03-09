@@ -25,6 +25,7 @@ jobs:
     - uses: Swatinem/rust-cache@v2
       with:
         key: ${{ matrix.tool }}
+        workspaces: ${{ matrix.tool }}
 
     - name: Lint
       run: cargo clippy
