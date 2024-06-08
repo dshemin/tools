@@ -287,9 +287,9 @@ peg::parser! {
 
         rule ru_letter() = ['а'..='я'] / ['А'..='Я'] / "ё" / "Ё"
 
-        rule space() = " "
-
         rule whitespace() = space() / "\n" / "\r" / "\t"
+
+        rule space() = " "
 
         rule punctuation() = "," / "." / "?" / "!" / "-" / "'" / "\""
     }

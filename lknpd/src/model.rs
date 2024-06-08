@@ -1,6 +1,6 @@
 use crate::newtype;
 use anyhow::anyhow;
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, Utc};
 use serde::{Deserialize, Serialize};
 
 /// Чек.
@@ -72,4 +72,59 @@ fn organization_inn_validate(value: &str) -> anyhow::Result<()> {
     }
 
     Ok(())
+}
+
+pub type AccessToken = Token;
+pub type RefreshToken = Token;
+
+/// Токент.
+/// Может быть использован для того чтобы представляет как access, так и refresh
+/// токен.
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct Token {
+    /// Значение токена.
+    pub(super) value: String,
+
+    /// Дата и время когда токен станет не валидным.
+    expire_at: Option<DateTime<Utc>>,
+}
+
+impl Token {
+    /// Создаёт новый инстанс токена.
+    pub fn new(value: String, expire_at: Option<DateTime<Utc>>) -> TokenNewResult {
+        let value = value.trim().to_owned();
+        if value.is_empty() {
+            return Err(TokenNewError::EmptyValue);
+        }
+
+        let token = Self { value, expire_at };
+
+        if token.is_expired() {
+            return Err(TokenNewError::AlreadyExpired);
+        }
+
+        Ok(token)
+    }
+
+    /// Проверяет что токен уже протух.
+    pub fn is_expired(&self) -> bool {
+        matches!(self.expire_at, Some(date) if date < Utc::now())
+    }
+}
+
+impl ToString for Token {
+    fn to_string(&self) -> String {
+        self.value.clone()
+    }
+}
+
+pub type TokenNewResult = std::result::Result<Token, TokenNewError>;
+
+#[derive(Debug, thiserror::Error)]
+pub enum TokenNewError {
+    #[error("value is empty")]
+    EmptyValue,
+
+    #[error("already expired")]
+    AlreadyExpired,
 }

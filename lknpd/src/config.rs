@@ -1,32 +1,31 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use anyhow::{Error, Result};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::template::raw::Template;
+use resolve_path::PathResolveExt;
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct Config {
-    /// ИИН самозанятого.
-    pub inn: String,
-
-    /// Данные для авторизации.
-    pub auth: Auth,
+    /// Путь до файла с состоянием.
+    pub state_path: PathBuf,
 
     /// Список шаблонов.
     pub templates: HashMap<String, Template>,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug)]
-pub struct Auth {
-    /// Токен авторизации.
-    /// Можно получить на https://lknpd.nalog.ru/settings/public-access/
-    pub token: String,
-}
-
 /// Загружает конфигурацию.
-pub fn load(path: PathBuf) -> Result<Config, Error> {
-    let cfg: Config = confy::load_path(path)?;
+pub fn load(path: PathBuf) -> anyhow::Result<Config> {
+    let mut cfg: Config = confy::load_path(path)?;
+
+    normalize(&mut cfg)?;
 
     Ok(cfg)
+}
+
+pub fn normalize(cfg: &mut Config) -> anyhow::Result<()> {
+    // Чтобы правильно обработать относительные пути.
+    cfg.state_path = cfg.state_path.try_resolve()?.into_owned();
+
+    Ok(())
 }

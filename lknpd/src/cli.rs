@@ -47,7 +47,7 @@ fn ask_field(fields: Option<&Field>) -> anyhow::Result<Option<FieldValues>> {
 }
 
 fn prompt(ph: &Placeholder) -> anyhow::Result<String> {
-    let title = format!("Value for variable \"{}\"", ph.name());
+    let title = format!("Значение для переменной \"{}\"", ph.name());
 
     let mut prompt = Text::new(&title);
 

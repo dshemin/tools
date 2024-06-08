@@ -17,7 +17,10 @@ env_logger = "0.11.2"
 inquire = { version = "0.7.0", features = ["chrono", "date"] }
 log = "0.4.20"
 peg = "0.8.2"
+rand = "0.8.5"
 regex = "1.10.3"
 reqwest = { version = "0.11.24", features = ["blocking", "json"] }
+resolve-path = "0.1.0"
 serde = { version = "1.0.196", features = ["serde_derive"] }
+serde_json = "1.0.114"
 thiserror = "1.0.57"
