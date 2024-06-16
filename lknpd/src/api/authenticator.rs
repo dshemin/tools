@@ -1,6 +1,11 @@
 use crate::model::{AccessToken, RefreshToken};
 
-use super::{client::InnerClient, models::{DeviceInfo, SMSChallengeRequest, SMSChallengeResponse, SMSVerifyRequest, TokenResponse}};
+use super::{
+    client::InnerClient,
+    models::{
+        DeviceInfo, SMSChallengeRequest, SMSChallengeResponse, SMSVerifyRequest, TokenResponse,
+    },
+};
 
 /// Аутентификатор по номеру телефона.
 ///
@@ -24,7 +29,7 @@ impl PhoneAuthenticator {
     pub fn challenge(&self) -> anyhow::Result<String> {
         const URL: &str = "/v2/auth/challenge/sms/start";
 
-        let payload = SMSChallengeRequest{
+        let payload = SMSChallengeRequest {
             phone: self.phone.clone(),
             required_tp_to_be_active: false,
         };
@@ -52,15 +57,9 @@ impl PhoneAuthenticator {
 
         let resp: TokenResponse = self.client.post(URL, Some(&payload), None)?;
 
-        let access_token = AccessToken::new(
-            resp.token,
-            Some(resp.token_expires_in),
-        )?;
+        let access_token = AccessToken::new(resp.token, Some(resp.token_expires_in))?;
 
-        let refresh_token = RefreshToken::new(
-            resp.refresh_token,
-            resp.refresh_token_expires_in,
-        )?;
+        let refresh_token = RefreshToken::new(resp.refresh_token, resp.refresh_token_expires_in)?;
 
         Ok((access_token, refresh_token))
     }

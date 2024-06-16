@@ -1,12 +1,11 @@
 use enum_iterator::{all, cardinality};
-use inquire::Text;
 use inquire::validator::Validation;
+use inquire::Text;
 
 use crate::{
     functions,
     template::compiled::{
-        Field, FieldName, FieldValues, Fields, Placeholder,
-        PlaceholderDefault, Values,
+        Field, FieldName, FieldValues, Fields, Placeholder, PlaceholderDefault, Values,
     },
 };
 
@@ -33,10 +32,15 @@ fn ask_field(fields: Option<&Field>) -> anyhow::Result<Option<FieldValues>> {
 
         let mut values = FieldValues::with_capacity(f.placeholders.len());
 
-        let vars = f
-            .placeholders
-            .iter()
-            .filter(|ph| matches!(ph, Placeholder::Variable { name: _, default: _ }));
+        let vars = f.placeholders.iter().filter(|ph| {
+            matches!(
+                ph,
+                Placeholder::Variable {
+                    name: _,
+                    default: _
+                }
+            )
+        });
 
         for ph in vars {
             let value = prompt(ph)?;
@@ -60,7 +64,7 @@ fn prompt(ph: &Placeholder) -> anyhow::Result<String> {
     // На данный момент считаем что все плейсхолдеры обязательны для заполнения.
     prompt = prompt.with_validator(|s: &str| {
         if s.is_empty() {
-            return Ok(Validation::Invalid("required".into()))
+            return Ok(Validation::Invalid("required".into()));
         };
         Ok(Validation::Valid)
     });

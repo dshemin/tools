@@ -77,8 +77,7 @@ impl Template {
 
         if let raw::Counterparty::Organization { name, inn } = &raw.counterparty {
             debug!("Parse field {}", FieldName::CounterpartyOrganizationName);
-            let f =
-                Field::new(name).map_err(|e| e.context("organization name"))?;
+            let f = Field::new(name).map_err(|e| e.context("organization name"))?;
             fields.insert(FieldName::CounterpartyOrganizationName, f);
 
             debug!("Parse field {}", FieldName::CounterpartyOrganizationINN);
@@ -102,12 +101,16 @@ impl Template {
         let date = self.replace_values(FieldName::Date, &self.raw.date, values)?;
         let counterparty = match &self.raw.counterparty {
             raw::Counterparty::Person => model::Counterparty::Person,
-            raw::Counterparty::Organization { name, inn } => {
-                model::Counterparty::Organization {
-                    name: (self.replace_values(FieldName::CounterpartyOrganizationName, name, values)?).try_into()?,
-                    inn: (self.replace_values(FieldName::CounterpartyOrganizationINN, inn, values)?).try_into()?,
-                }
-            }
+            raw::Counterparty::Organization { name, inn } => model::Counterparty::Organization {
+                name: (self.replace_values(
+                    FieldName::CounterpartyOrganizationName,
+                    name,
+                    values,
+                )?)
+                .try_into()?,
+                inn: (self.replace_values(FieldName::CounterpartyOrganizationINN, inn, values)?)
+                    .try_into()?,
+            },
         };
 
         Ok(model::Check {
@@ -154,18 +157,12 @@ impl Template {
 
     fn get_value(ph: &Placeholder, values: &FieldValues) -> anyhow::Result<String> {
         match ph {
-            Placeholder::Variable { name, default: _ } => {
-                values
+            Placeholder::Variable { name, default: _ } => values
                 .get(name)
                 .ok_or(anyhow!("field {} not found", name))
-                .cloned()
-            }
-            Placeholder::Function { name } => {
-                functions::execute(name).map_err(|e| anyhow!(e))
-            }
+                .cloned(),
+            Placeholder::Function { name } => functions::execute(name).map_err(|e| anyhow!(e)),
         }
-
-
     }
 }
 
@@ -189,9 +186,7 @@ pub enum Placeholder {
 
     /// Функция.
     /// Результат будет вычислен и подставлен при формировании чека.
-    Function {
-        name: String,
-    },
+    Function { name: String },
 }
 
 impl Placeholder {
