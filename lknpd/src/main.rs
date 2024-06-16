@@ -62,15 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .ok_or(anyhow!("template {} not found", args.template))?
                 .clone();
 
-            let client = get_client(&state)?;
-
-            debug!("Синхронизируем состояние с актуальными данными");
-            state.access_token = Some(client.get_access_token());
-            state.refresh_token = Some(client.get_refresh_token());
-            state.taxpayer_identification_number = Some(client.get_inn());
-
-            debug!("Сохраняем состояние в {:?}", cfg.state_path);
-            state::save(&state, &cfg.state_path)?;
+            let mut client = get_client(&state)?;
 
             let tmpl = compiled::Template::new(raw_tmpl)?;
 
@@ -85,6 +77,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             cli_clipboard::set_contents(url)?;
 
             println!("Так же чек скопирован в буфер обмена");
+
+            debug!("Синхронизируем состояние с актуальными данными");
+            state.access_token = Some(client.get_access_token());
+            state.refresh_token = Some(client.get_refresh_token());
+            state.taxpayer_identification_number = Some(client.get_inn());
+
+            debug!("Сохраняем состояние в {:?}", cfg.state_path);
+            state::save(&state, &cfg.state_path)?;
         }
     };
 
@@ -118,7 +118,11 @@ fn get_client(state: &State) -> anyhow::Result<api::AuthorizedClient> {
 
     // Пытаемся создать клиента. Логика рефреша в нём.
     // Тут можно спокойно делать unwrap так, как токены точно будут.
-    AuthorizedClient::from_tokens(access_token.unwrap(), refresh_token.unwrap())
+    AuthorizedClient::new(
+        state.device_id.clone(),
+        access_token.unwrap(),
+        refresh_token.unwrap(),
+    )
 }
 
 fn authenticate(state: &State) -> anyhow::Result<(AccessToken, RefreshToken)> {

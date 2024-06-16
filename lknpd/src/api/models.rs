@@ -1,6 +1,9 @@
+use crate::{
+    api::client::USER_AGENT,
+    model::{Check, Counterparty},
+};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::{api::client::USER_AGENT, model::{Check, Counterparty}};
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -96,13 +99,13 @@ pub struct DeviceInfo {
 }
 
 impl DeviceInfo {
-    pub fn new(device_id: String) -> Self {
+    pub fn new(device_id: &str) -> Self {
         Self {
             app_version: "1.0.0".to_owned(),
             meta_details: DeviceInfoMetaDetails {
                 user_agent: USER_AGENT.to_owned(),
             },
-            source_device_id: device_id.clone(),
+            source_device_id: device_id.to_owned(),
             source_type: "WEB".to_owned(),
         }
     }
@@ -116,14 +119,20 @@ pub struct DeviceInfoMetaDetails {
 
 #[derive(Default, Debug, Clone, PartialEq, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SMSVerifyResponse {
+pub struct TokenResponse {
     pub refresh_token: String,
     pub refresh_token_expires_in: Option<DateTime<Utc>>,
     pub token: String,
-    #[serde(rename="tokenExpireIn")]
+    #[serde(rename = "tokenExpireIn")]
     pub token_expires_in: DateTime<Utc>,
 }
 
+#[derive(Default, Debug, Clone, PartialEq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TokenRefreshRequest {
+    pub device_info: DeviceInfo,
+    pub refresh_token: String,
+}
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase")]

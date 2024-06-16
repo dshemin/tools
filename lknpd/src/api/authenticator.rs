@@ -1,6 +1,6 @@
 use crate::model::{AccessToken, RefreshToken};
 
-use super::{client::InnerClient, models::{DeviceInfo, SMSChallengeRequest, SMSChallengeResponse, SMSVerifyRequest, SMSVerifyResponse}};
+use super::{client::InnerClient, models::{DeviceInfo, SMSChallengeRequest, SMSChallengeResponse, SMSVerifyRequest, TokenResponse}};
 
 /// Аутентификатор по номеру телефона.
 ///
@@ -45,12 +45,12 @@ impl PhoneAuthenticator {
 
         let payload = SMSVerifyRequest {
             challenge_token,
-            device_info: DeviceInfo::new(device_id),
+            device_info: DeviceInfo::new(&device_id),
             code,
             phone: self.phone.clone(),
         };
 
-        let resp: SMSVerifyResponse = self.client.post(URL, Some(&payload), None)?;
+        let resp: TokenResponse = self.client.post(URL, Some(&payload), None)?;
 
         let access_token = AccessToken::new(
             resp.token,

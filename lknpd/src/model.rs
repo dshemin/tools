@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use crate::newtype;
 use anyhow::anyhow;
 use chrono::{DateTime, FixedOffset, Utc};
@@ -112,9 +114,9 @@ impl Token {
     }
 }
 
-impl ToString for Token {
-    fn to_string(&self) -> String {
-        self.value.clone()
+impl Display for Token {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
     }
 }
 
