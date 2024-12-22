@@ -1,0 +1,6 @@
+Event,Date,Symbol,Price,Quantity,Currency,FeeTax,Exchange,NKD,FeeCurrency,DoNotAdjustCash,Note
+Cash_Gain,2021-08-03,RUB,1.0,2.91,RUB,0.0,,,,,
+Sell,2021-08-03,ZAIMI_POTOK,1.0,31.67,RUB,0.0,CUSTOM_HOLDING,,,,
+Dividend,2021-08-03,ZAIMI_POTOK,0.0,2.85,RUB,1.0,CUSTOM_HOLDING,,,,
+Buy,2021-07-23,ZAIMI_POTOK,1.0,400.0,RUB,0.0,CUSTOM_HOLDING,,,,
+Cash_In,2021-07-21,RUB,1.0,10000.0,RUB,0.0,,,,,
