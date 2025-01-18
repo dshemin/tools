@@ -195,13 +195,14 @@ impl TryFrom<PotokRecord> for SnowballRecord {
                 SnowballRecordEvent::Buy
                 | SnowballRecordEvent::Sell
                 | SnowballRecordEvent::Dividend => "ZAIMI_POTOK".to_string(),
+                SnowballRecordEvent::Fee => "".to_string(),
             },
             price: match event {
                 SnowballRecordEvent::Buy
                 | SnowballRecordEvent::Sell
                 | SnowballRecordEvent::CashIn
                 | SnowballRecordEvent::CashGain => 1.0,
-                SnowballRecordEvent::Dividend => 0.0,
+                SnowballRecordEvent::Dividend | SnowballRecordEvent::Fee => 0.0,
             },
             quantity: match event {
                 SnowballRecordEvent::Buy => value.outcome,
@@ -209,11 +210,17 @@ impl TryFrom<PotokRecord> for SnowballRecord {
                 | SnowballRecordEvent::Sell
                 | SnowballRecordEvent::CashIn
                 | SnowballRecordEvent::CashGain => value.income,
+                SnowballRecordEvent::Fee => 0.0,
             },
             currency: "RUB".to_string(),
-            fee_tax: value.fee,
+            fee_tax: match event {
+                SnowballRecordEvent::Fee => value.outcome,
+                _ => value.fee,
+            },
             exchange: match event {
-                SnowballRecordEvent::CashIn | SnowballRecordEvent::CashGain => None,
+                SnowballRecordEvent::CashIn
+                | SnowballRecordEvent::CashGain
+                | SnowballRecordEvent::Fee => None,
                 SnowballRecordEvent::Buy
                 | SnowballRecordEvent::Sell
                 | SnowballRecordEvent::Dividend => Some("CUSTOM_HOLDING".to_string()),
@@ -243,6 +250,9 @@ enum SnowballRecordEvent {
     /// Получение средств на счёт от платформы, например получение % на остаток,
     /// акции и т.п.
     CashGain,
+
+    /// Разного рода комиссии.
+    Fee,
 }
 
 impl Serialize for SnowballRecordEvent {
@@ -259,13 +269,22 @@ impl TryFrom<String> for SnowballRecordEvent {
 
     fn try_from(value: String) -> Result<Self, Self::Error> {
         let ev = match value.as_ref() {
-            "Выдача займа" => SnowballRecordEvent::Buy,
-            "Возврат основного долга" => SnowballRecordEvent::Sell,
+            // Основываясь на ответе от тех поддержки - "Расход по покупке прав
+            // требований" это один из вариантов выдачи займа.
+            "Выдача займа" | "Расход по покупке прав требований" => {
+                SnowballRecordEvent::Buy
+            }
+            "Возврат основного долга" | "Возврат основного долга по цессии" => {
+                SnowballRecordEvent::Sell
+            }
             "Получение дохода (проценты, пени)" => {
                 SnowballRecordEvent::Dividend
             }
-            "Пополнение л/с" => SnowballRecordEvent::CashIn,
+            "Пополнение л/с" | "Выравнивающий платеж" | "Начисление по акции" => {
+                SnowballRecordEvent::CashIn
+            }
             "Начисление % на остаток" => SnowballRecordEvent::CashGain,
+            "Расход по цессии" => SnowballRecordEvent::Fee,
             _ => return Err(format!("unknown {}", value)),
         };
 
@@ -281,6 +300,7 @@ impl std::fmt::Display for SnowballRecordEvent {
             Self::Dividend => "Dividend",
             Self::CashIn => "Cash_In",
             Self::CashGain => "Cash_Gain",
+            Self::Fee => "Fee",
         };
         write!(f, "{}", s)
     }
@@ -411,6 +431,27 @@ mod tests {
                 outcome: 0.0,
                 fee: 20.2,
             }),
+
+            try_from_fee: (SnowballRecord{
+                event: SnowballRecordEvent::Fee,
+                date: "2025-01-02".to_string(),
+                symbol: "".to_string(),
+                price: 0.0,
+                quantity: 0.0,
+                currency: "RUB".to_string(),
+                fee_tax: 10.1,
+                exchange: None,
+                nkd: None,
+                fee_currency: None,
+                do_not_adjust_cash: None,
+                note: None,
+            }, PotokRecord{
+                date: Ok(NaiveDate::from_ymd_opt(2025, 1, 2).unwrap()),
+                r#type: "Расход по цессии".to_string(),
+                income: 0.0,
+                outcome: 10.1,
+                fee: 20.2,
+            }),
         }
     }
 
@@ -432,10 +473,15 @@ mod tests {
 
         try_from_tests_success! {
             try_from_buy: (SnowballRecordEvent::Buy, "Выдача займа"),
+            try_from_buy_rights: (SnowballRecordEvent::Buy, "Расход по покупке прав требований"),
             try_from_sell: (SnowballRecordEvent::Sell, "Возврат основного долга"),
+            try_from_sell_cession: (SnowballRecordEvent::Sell, "Возврат основного долга по цессии"),
             try_from_dividend: (SnowballRecordEvent::Dividend, "Получение дохода (проценты, пени)"),
             try_from_cash_in: (SnowballRecordEvent::CashIn, "Пополнение л/с"),
+            try_from_cash_in_correction: (SnowballRecordEvent::CashIn, "Выравнивающий платеж"),
+            try_from_cash_in_promotion: (SnowballRecordEvent::CashIn, "Начисление по акции"),
             try_from_cash_gain: (SnowballRecordEvent::CashGain, "Начисление % на остаток"),
+            try_from_fee: (SnowballRecordEvent::Fee, "Расход по цессии"),
         }
 
         #[test]
@@ -463,6 +509,7 @@ mod tests {
             to_string_divident: ("Dividend", SnowballRecordEvent::Dividend),
             to_string_cash_in: ("Cash_In", SnowballRecordEvent::CashIn),
             to_string_cash_gain: ("Cash_Gain", SnowballRecordEvent::CashGain),
+            to_string_fee: ("Fee", SnowballRecordEvent::Fee),
         }
     }
 }
